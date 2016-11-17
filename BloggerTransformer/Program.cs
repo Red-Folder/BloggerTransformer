@@ -18,7 +18,7 @@ namespace ConsoleApplication
 
             Console.WriteLine("Converting XML file to object");
             //dynamic blogger = DynamicXml.Parse(xml);
-            var fileStream = File.Open("c:\\blogger.xml", FileMode.Open);
+            var fileStream = File.Open("c:\\tmp\\blogger.xml", FileMode.Open);
             XmlSerializer serializer = new XmlSerializer(typeof(Feed));
             var feed = (Feed)serializer.Deserialize(fileStream);
             //fileStream.Close();
@@ -32,9 +32,9 @@ namespace ConsoleApplication
             //    Console.WriteLine(entry.Category.Term);
             //}
 
-            foreach (var scheme in feed.Entries.SelectMany(x => x.Categories).Select(x => x.Scheme).GroupBy(x => x).Select(grp => grp.First()))
+            foreach (var entry in feed.Entries)
             {
-                Console.WriteLine(scheme);
+                Console.WriteLine(entry.Kind);
             }
 
             //IsNull("blogger", blogger);
