@@ -29,13 +29,20 @@ namespace ConsoleApplication
             Console.WriteLine(feed.Entries.Count);
 
             // Output the feed for sample
-            ReportPost(feed.Entries.Where(x => x.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894").First(), feed);
+            var testPost = feed.Entries.Where(x => x.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894").First();
+            var testGraph = feed.Graph(testPost);
+            //ReportPost(testPost, testGraph);
+            SavePost(testPost);
 
             Console.WriteLine("Finished");
-            Console.ReadKey();
         }
 
-        private static void ReportPost(Entry post, Feed feed)
+        private static void SavePost(Entry post)
+        {
+            File.WriteAllText("c:\\tmp\\output.md", post.ContentAsMarkdown);
+        }
+
+        private static void ReportPost(Entry post, EntryGraph graph)
         {
             Console.WriteLine("Id: " + post.Id);
             Console.WriteLine("Published: " + post.Published);
@@ -46,7 +53,7 @@ namespace ConsoleApplication
             Console.WriteLine("Author: " + post.Author.Name);
             Console.WriteLine("Content Length: " + post.Content.Length);
 
-            ReportGraph(feed.Graph(post));
+            ReportGraph(graph);
         } 
 
         private static void ReportGraph(EntryGraph graph, int indent = 0)

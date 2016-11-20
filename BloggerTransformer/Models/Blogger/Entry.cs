@@ -2,6 +2,8 @@ using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BloggerTransformer.Models.Blogger
 {
@@ -119,6 +121,67 @@ namespace BloggerTransformer.Models.Blogger
             get
             {
                 return Categories.Where(x => x.Scheme == "http://www.blogger.com/atom/ns#").Select(x => x.Term).ToList();
+            }
+        }
+
+        public string ContentAsMarkdown
+        {
+            get
+            {
+                var md = Content;
+
+                // Add Carriage Returns
+                md = md.Replace("<br />", Environment.NewLine);
+
+                // Map <hx>
+                md = Regex.Replace(md, "<h1>(.*)</h1>", x => {
+                    return "# " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
+                });
+                md = Regex.Replace(md, "<h2>(.*)</h2>", x => {
+                    return "## " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
+                });
+                md = Regex.Replace(md, "<h3>(.*)</h3>", x => {
+                    return "### " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
+                });
+
+                // Replace non-breaking spaces
+                md = md.Replace("&nbsp;"," ");
+
+                // Remove summary breaks
+                md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, "");
+
+                // Map blogger image
+                md = Regex.Replace(md, "<div class=\"separator\"(.*)<a href=\"(.*?)\"(.*)<img (.*)src=\"(.*)\"(.*)</div>", x => {
+                   return "![Image](" + x.Groups[2] + ")" + Environment.NewLine; 
+                });
+
+                // Map Anchors
+                md = Regex.Replace(md, "<a (.*)>(.*)</a>", x => {
+                    var sb = new StringBuilder();
+                    sb.Append("[");
+                    sb.Append(x.Groups[2]);
+                    sb.Append("]");
+                    sb.Append("(");
+                    sb.Append(Regex.Matches(x.Groups[1].ToString(), "href=\"(.*)\"")[0].Groups[1]);
+                    sb.Append(")");
+                    return sb.ToString();
+                });
+
+                // Map Lists
+                md = md.Replace("<ul>", Environment.NewLine);
+                md = md.Replace("<li>", "* ");
+                md = md.Replace("</li>", Environment.NewLine);
+                md = md.Replace("</ul>", Environment.NewLine);
+
+                // Remove Divs
+                md = md.Replace("<div>", "");
+                md = md.Replace("</div>", "");
+
+                // Replace html encoding
+                md = md.Replace("&gt;", ">");
+                
+
+                return md;
             }
         }
     }
