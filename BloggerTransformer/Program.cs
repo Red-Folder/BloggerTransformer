@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.IO;
 using System.Linq;
 using BloggerTransformer.Models.Blogger;
@@ -27,20 +28,37 @@ namespace ConsoleApplication
             Console.WriteLine(feed.Id);
             Console.WriteLine(feed.Entries.Count);
 
-            //foreach (var entry in feed.Entries)
-            //{
-            //    Console.WriteLine(entry.Category.Term);
-            //}
+            // Output the feed for sample
+            ReportPost(feed.Entries.Where(x => x.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894").First(), feed);
 
-            foreach (var entry in feed.Entries)
-            {
-                Console.WriteLine(entry.Kind);
-            }
-
-            //IsNull("blogger", blogger);
-            //Console.WriteLine(String.Format("{0} entries found", blogger.entry.Count));
             Console.WriteLine("Finished");
             Console.ReadKey();
+        }
+
+        private static void ReportPost(Entry post, Feed feed)
+        {
+            Console.WriteLine("Id: " + post.Id);
+            Console.WriteLine("Published: " + post.Published);
+            Console.WriteLine("Updated: " + post.Updated);
+            Console.WriteLine("Title: " + post.Title);
+            Console.WriteLine("Url: " + post.Url);
+            Console.WriteLine("Tags: " + String.Join(", ", post.Tags));
+            Console.WriteLine("Author: " + post.Author.Name);
+            Console.WriteLine("Content Length: " + post.Content.Length);
+
+            ReportGraph(feed.Graph(post));
+        } 
+
+        private static void ReportGraph(EntryGraph graph, int indent = 0)
+        {
+
+            Console.WriteLine((new String('\t', indent)) + graph.Entry.Id);
+            indent++;
+
+            foreach (var child in graph.Children)
+            {
+                ReportGraph(child, indent);
+            }
         }
 
         private static void IsNull(string name, object item)

@@ -13,6 +13,72 @@ namespace BloggerTransformer.Models.Blogger
         [XmlElement("category")]
         public List<Category> Categories;
 
+        [XmlElement("published")]
+        public DateTime Published;
+
+        [XmlElement("updated")]
+        public DateTime Updated;
+
+        [XmlElement("title")]
+        public string Title;
+
+        [XmlElement("content")]
+        public string Content;
+
+        [XmlElement("author")]
+        public Author Author;
+
+        [XmlElement(Namespace = "http://purl.org/syndication/thread/1.0", ElementName = "in-reply-to")]
+        public InReplyTo InReplyTo;
+
+        [XmlElement("link")]
+        public List<Link> Links;
+        
+        public string RelatedLink
+        {
+            get
+            {
+                return GetLink("related");
+            }
+        }
+
+        public string SelfLink
+        {
+            get
+            {
+                return GetLink("self");
+            }
+        }
+
+        public string Url
+        {
+            get
+            {
+                var fullUrl = GetLink("alternate");
+                return fullUrl.Replace("http://blog.red-folder.com", "");
+            }
+        }
+
+        private string GetLink(string rel)
+        {
+            var link = Links.Where(x => x.Rel == rel);
+            if (link.Count() == 1)
+            {
+                return link.First().HRef;
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        public bool IsRootComment
+        {
+            get
+            {
+                return (Kind == KindType.Comment && RelatedLink.Length == 0);
+            }
+        }
 
         public KindType Kind
         {
@@ -30,7 +96,6 @@ namespace BloggerTransformer.Models.Blogger
                     throw new Exception("Multiple kind records");
                 }
 
-                var kind = KindType.Unknown;
                 switch (kindList.First().Term)
                 {
                     case "http://schemas.google.com/blogger/2008/kind#template":
@@ -39,13 +104,13 @@ namespace BloggerTransformer.Models.Blogger
                         return KindType.Settings;
                     case "http://schemas.google.com/blogger/2008/kind#post":
                         return KindType.Post;
+                    case "http://schemas.google.com/blogger/2008/kind#comment":
+                        return KindType.Comment;
                     default:
                         Console.WriteLine("[ERROR] Unknown Kind");
                         Console.WriteLine(kindList.First().Term);
                         throw new Exception("Unknown kind");
                 }
-
-                return kind;
             }
         }
 
@@ -53,7 +118,7 @@ namespace BloggerTransformer.Models.Blogger
         {
             get
             {
-                return new List<string>();
+                return Categories.Where(x => x.Scheme == "http://www.blogger.com/atom/ns#").Select(x => x.Term).ToList();
             }
         }
     }
@@ -63,6 +128,7 @@ namespace BloggerTransformer.Models.Blogger
         Template,
         Settings,
         Post,
+        Comment,
         Unknown
     }
 }
