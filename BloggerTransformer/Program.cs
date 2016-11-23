@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Text;
 using System.IO;
 using System.Linq;
 using BloggerTransformer.Models.Blogger;
+using BloggerTransformer.Helpers;
 using System.Xml.Serialization;
 
 namespace ConsoleApplication
@@ -32,15 +32,12 @@ namespace ConsoleApplication
             var testPost = feed.Entries.Where(x => x.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894").First();
             var testGraph = feed.Graph(testPost);
             //ReportPost(testPost, testGraph);
-            SavePost(testPost);
+            Exporter.Export(testGraph);
 
             Console.WriteLine("Finished");
         }
 
-        private static void SavePost(Entry post)
-        {
-            File.WriteAllText("c:\\tmp\\output.md", post.ContentAsMarkdown);
-        }
+        
 
         private static void ReportPost(Entry post, EntryGraph graph)
         {
