@@ -3,7 +3,8 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 using BloggerTransformer.Models.Blogger;
-using System.Threading.Tasks;
+using RedFolder.Website.Data;
+using Newtonsoft.Json;
 
 namespace BloggerTransformer.Helpers
 {
@@ -15,6 +16,17 @@ namespace BloggerTransformer.Helpers
 
         public static void Export(EntryGraph graph)
         {
+            Blog meta = new Blog();
+            meta.Id = Guid.NewGuid().ToString();
+            meta.Url = graph.Entry.Url;
+            meta.Author = graph.Entry.Author.Name;
+            meta.Published = graph.Entry.Published;
+            meta.Modified = graph.Entry.Updated;
+            meta.Title = graph.Entry.Title;
+            //meta.Image;
+            //meta.Description;
+            meta.Enabled = true;
+
             string contentFolder = CreateContentFolder(graph.Entry.Url);
             string mediaFolder = CreateMediaFolder(graph.Entry.Url);
             string mediaPath = MEDIABASEPATH + graph.Entry.Url;
@@ -78,12 +90,18 @@ namespace BloggerTransformer.Helpers
             md = md.Replace("&gt;", ">");
                 
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
+            SaveMeta(contentFolder, graph.Entry.Url, meta);
 
             Console.WriteLine(graph.Entry.Url);
         }  
         private static void SaveMarkdown(string baseFolder, string exportFolder, string markdown)
         {
             File.WriteAllText(baseFolder + "\\" + exportFolder + ".md", markdown);
+        }
+
+        private static void SaveMeta(string baseFolder, string exportFolder, Blog meta)
+        {
+            File.WriteAllText(baseFolder + "\\" + exportFolder + ".json", JsonConvert.SerializeObject(meta));
         }
 
         private static string CreateContentFolder(string folderName)
@@ -121,6 +139,5 @@ namespace BloggerTransformer.Helpers
             }
             return imageUrl;
         }
-
     }
 }
