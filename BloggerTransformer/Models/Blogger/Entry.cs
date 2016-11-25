@@ -2,7 +2,7 @@ using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 
 namespace BloggerTransformer.Models.Blogger
 {
@@ -56,7 +56,7 @@ namespace BloggerTransformer.Models.Blogger
             get
             {
                 var fullUrl = GetLink("alternate");
-                return fullUrl.Replace("http://blog.red-folder.com", "");
+                return fullUrl.Substring(fullUrl.LastIndexOf('/')).Replace("/", "").Replace(".html", ""); 
             }
         }
 

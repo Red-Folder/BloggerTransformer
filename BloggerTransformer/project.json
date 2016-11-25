@@ -12,7 +12,8 @@
           "type": "platform",
           "version": "1.0.1"
         },
-        "System.Xml.XmlSerializer": "4.3.0"
+        "System.Xml.XmlSerializer": "4.3.0",
+        "WinInsider.System.Net.Http.Formatting": "1.0.1"
       },
       "imports": "dnxcore50"
     }

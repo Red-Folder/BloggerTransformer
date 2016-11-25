@@ -3,14 +3,21 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 using BloggerTransformer.Models.Blogger;
-
+using System.Threading.Tasks;
 
 namespace BloggerTransformer.Helpers
 {
     public class Exporter
     {
+        private const string CONTENTBASEFOLDER = "c:\\tmp\\blog\\";
+        private const string MEDIABASEFOLDER = "c:\\tmp\\blog\\";
+        private const string MEDIABASEPATH = "/media/blog/";
+
         public static void Export(EntryGraph graph)
         {
+            string contentFolder = CreateContentFolder(graph.Entry.Url);
+            string mediaFolder = CreateMediaFolder(graph.Entry.Url);
+            string mediaPath = MEDIABASEPATH + graph.Entry.Url;
 
             var md = graph.Entry.Content;
 
@@ -36,7 +43,7 @@ namespace BloggerTransformer.Helpers
 
             // Map blogger image
             md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x => {
-               return "![Image](" + x.Groups[2] + ")" + Environment.NewLine; 
+               return "![Image](" + ProcessImage(mediaFolder, mediaPath, x.Groups[2].Value) + ")" + Environment.NewLine; 
             });
 
             // Map Anchors
@@ -70,11 +77,50 @@ namespace BloggerTransformer.Helpers
             // Replace html encoding
             md = md.Replace("&gt;", ">");
                 
-            SaveMarkdown(md);
+            SaveMarkdown(contentFolder, graph.Entry.Url, md);
+
+            Console.WriteLine(graph.Entry.Url);
         }  
-        private static void SaveMarkdown(string markdown)
+        private static void SaveMarkdown(string baseFolder, string exportFolder, string markdown)
         {
-            File.WriteAllText("c:\\tmp\\output.md", markdown);
+            File.WriteAllText(baseFolder + "\\" + exportFolder + ".md", markdown);
         }
+
+        private static string CreateContentFolder(string folderName)
+        {
+            return CreateFolder(CONTENTBASEFOLDER + folderName);
+        }
+
+        private static string CreateMediaFolder(string folderName)
+        {
+            return CreateFolder(MEDIABASEFOLDER + folderName);
+        }
+        
+        private static string CreateFolder(string folderName)
+        {
+            if (Directory.Exists(folderName))
+            {
+                Directory.Delete(folderName, true);
+            }
+
+            Directory.CreateDirectory(folderName);
+
+            return folderName;
+        }
+
+        private static string ProcessImage(string exportFolder, string relativePath, string imageUrl)
+        {
+            if (imageUrl.Contains("blogspot.com"))
+            {
+                var filename = imageUrl.Substring(imageUrl.LastIndexOf("/") + 1);
+                var newImageUrl = relativePath + filename;
+
+                Downloader.Download(imageUrl, exportFolder + "\\" +  filename).Wait();
+
+                return newImageUrl;
+            }
+            return imageUrl;
+        }
+
     }
 }
