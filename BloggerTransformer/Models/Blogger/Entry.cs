@@ -55,8 +55,16 @@ namespace BloggerTransformer.Models.Blogger
         {
             get
             {
-                var fullUrl = GetLink("alternate");
+                var fullUrl = BloggerUrl;
                 return fullUrl.Substring(fullUrl.LastIndexOf('/')).Replace("/", "").Replace(".html", ""); 
+            }
+        }
+
+        public string BloggerUrl
+        {
+            get
+            {
+                return GetLink("alternate");
             }
         }
 

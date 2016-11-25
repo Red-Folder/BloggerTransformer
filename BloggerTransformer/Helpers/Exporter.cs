@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using BloggerTransformer.Models.Blogger;
 using RedFolder.Website.Data;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Net;
 
 namespace BloggerTransformer.Helpers
 {
@@ -26,6 +28,16 @@ namespace BloggerTransformer.Helpers
             //meta.Image;
             //meta.Description;
             meta.Enabled = true;
+            meta.Redirects = new List<Redirect>
+            {
+                new Redirect
+                {
+                    Url = graph.Entry.BloggerUrl,
+                    RedirectType = HttpStatusCode.MovedPermanently,
+                    RedirectByParameter = true,
+                    RedirectByRoute = false
+                }
+            };
 
             string contentFolder = CreateContentFolder(graph.Entry.Url);
             string mediaFolder = CreateMediaFolder(graph.Entry.Url);

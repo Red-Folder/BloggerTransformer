@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace RedFolder.Website.Data
 {
@@ -24,5 +25,7 @@ namespace RedFolder.Website.Data
         public string Description { get; set; }
         [DataMember(Name="enabled")]
         public bool Enabled { get; set; }
+        [DataMember(Name="redirects")]
+        public List<Redirect> Redirects { get; set; }
     }
 }
