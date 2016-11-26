@@ -16,6 +16,10 @@ namespace BloggerTransformer.Helpers
         private const string MEDIABASEFOLDER = "c:\\tmp\\blog\\";
         private const string MEDIABASEPATH = "/media/blog/";
 
+        private const string DESCRIPTION_BREAK_TAG = "[DESCRIPTION BREAK]";
+
+        private const bool DOWNLOAD_ENABLED = false;
+
         public static void Export(EntryGraph graph)
         {
             Blog meta = new Blog();
@@ -62,13 +66,14 @@ namespace BloggerTransformer.Helpers
             // Replace non-breaking spaces
             md = md.Replace("&nbsp;"," ");
 
-            // Remove summary breaks
-            md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, "");
 
             // Map blogger image
             md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x => {
                return "![Image](" + ProcessImage(mediaFolder, mediaPath, x.Groups[2].Value) + ")" + Environment.NewLine; 
             });
+
+            // Remove summary breaks
+            md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, DESCRIPTION_BREAK_TAG);
 
             // Map Anchors
             md = Regex.Replace(md, "<a (.*?)>(.*?)</a>", x => {
@@ -100,6 +105,13 @@ namespace BloggerTransformer.Helpers
 
             // Replace html encoding
             md = md.Replace("&gt;", ">");
+
+            // Load the Description (then remove the tag)
+            if (md.Contains(DESCRIPTION_BREAK_TAG))
+            {
+                meta.Description = md.Substring(0, md.IndexOf(DESCRIPTION_BREAK_TAG));
+                md = md.Replace(DESCRIPTION_BREAK_TAG, "");
+            }
                 
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
             SaveMeta(contentFolder, graph.Entry.Url, meta);
@@ -145,7 +157,10 @@ namespace BloggerTransformer.Helpers
                 var filename = imageUrl.Substring(imageUrl.LastIndexOf("/") + 1);
                 var newImageUrl = relativePath + filename;
 
-                Downloader.Download(imageUrl, exportFolder + "\\" +  filename).Wait();
+                if (DOWNLOAD_ENABLED)
+                {
+                    Downloader.Download(imageUrl, exportFolder + "\\" +  filename).Wait();
+                }
 
                 return newImageUrl;
             }
