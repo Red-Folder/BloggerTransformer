@@ -25,6 +25,8 @@ namespace RedFolder.Website.Data
         public string Description { get; set; }
         [DataMember(Name="enabled")]
         public bool Enabled { get; set; }
+        [DataMember(Name="keyWords")]
+        public List<string> KeyWords { get; set; }
         [DataMember(Name="redirects")]
         public List<Redirect> Redirects { get; set; }
     }

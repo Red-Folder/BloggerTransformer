@@ -29,7 +29,9 @@ namespace ConsoleApplication
             Console.WriteLine(feed.Entries.Count);
 
             // Output the feed for sample
-            var testPost = feed.Entries.Where(x => x.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894").First();
+            //var targetId = "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894";
+            var targetId = "tag:blogger.com,1999:blog-2744013729766746743.post-2941986872580699950";
+            var testPost = feed.Entries.Where(x => x.Id == targetId).First();
             var testGraph = feed.Graph(testPost);
             //ReportPost(testPost, testGraph);
             Exporter.Export(testGraph);

@@ -66,6 +66,8 @@ namespace BloggerTransformer.Helpers
             // Replace non-breaking spaces
             md = md.Replace("&nbsp;"," ");
 
+            // Remove any meta Tags
+            md = Regex.Replace(md, "<meta (.*?)/>" + Environment.NewLine, "");            
 
             // Map blogger image
             md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x => {
@@ -74,6 +76,10 @@ namespace BloggerTransformer.Helpers
 
             // Remove summary breaks
             md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, DESCRIPTION_BREAK_TAG);
+            
+            // Remove RFC Weekly header
+            Regex rfcWeeklyHeaderRegex = new Regex("<a href=\"(.*?)Hopefully someone else will also find useful.", RegexOptions.Singleline);
+            md = rfcWeeklyHeaderRegex.Replace(md, "");
 
             // Map Anchors
             md = Regex.Replace(md, "<a (.*?)>(.*?)</a>", x => {
@@ -106,11 +112,31 @@ namespace BloggerTransformer.Helpers
             // Replace html encoding
             md = md.Replace("&gt;", ">");
 
+            // Remove empty lines at the start & end
+            while (md.StartsWith(Environment.NewLine))
+            {
+                md = md.Substring(Environment.NewLine.Length);
+            }
+            while (md.EndsWith(Environment.NewLine + Environment.NewLine))
+            {
+                md = md.Substring(0, md.Length - Environment.NewLine.Length);
+            }
+
             // Load the Description (then remove the tag)
             if (md.Contains(DESCRIPTION_BREAK_TAG))
             {
                 meta.Description = md.Substring(0, md.IndexOf(DESCRIPTION_BREAK_TAG));
                 md = md.Replace(DESCRIPTION_BREAK_TAG, "");
+            }
+
+            // Set up the Keywords - add RFC Weekly if necessary
+            meta.KeyWords = graph.Entry.Tags;
+            if (graph.Entry.Title.ToLower().Contains("rfc") && graph.Entry.Title.ToLower().Contains("weekly"))
+            {
+                if (!meta.KeyWords.Contains("RFCWeekly"))
+                {
+                    meta.KeyWords.Add("RFCWeekly");
+                }
             }
                 
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
