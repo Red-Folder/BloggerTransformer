@@ -6,9 +6,9 @@ using System.Xml;
 
 namespace BloggerTransformer.Models.Disqus
 {
-    [XmlRoot(ElementName="comment", Namespace= Rss.NS_WP)]
+    [XmlRoot(ElementName = "comment", Namespace = Rss.NS_WP)]
 
-    public class Comment: IXmlSerializable
+    public class Comment : IXmlSerializable
     {
         // internal id of comment
         [XmlElement(ElementName = "comment_id", Namespace = Rss.NS_WP)]
@@ -47,30 +47,36 @@ namespace BloggerTransformer.Models.Disqus
         public string ParentId { get; set; }
 
         #region IXmlSerializable
-        public void WriteXml (XmlWriter writer)
+        public void WriteXml(XmlWriter writer)
         {
-          writer.WriteElementString("remote", Rss.NS_DSQ, "TODO");
-          writer.WriteElementString("comment_id", Rss.NS_WP, Id);
-          writer.WriteElementString("comment_author", Rss.NS_WP, Author);
-          writer.WriteElementString("comment_author_email", Rss.NS_WP, AuthorEmail);
-          writer.WriteElementString("comment_author_url", Rss.NS_WP, AuthorUrl);
-          writer.WriteElementString("comment_author_IP", Rss.NS_WP, AuthorIP);
-          writer.WriteElementString("comment_date_gmt", Rss.NS_WP, "TODO" + Published.ToString());
-          writer.WriteStartElement("comment_content", Rss.NS_WP);
-          writer.WriteCData(Content);
-          writer.WriteEndElement();
-          writer.WriteElementString("comment_approved", Rss.NS_WP, Approved.ToString());
-          writer.WriteElementString("comment_parent", Rss.NS_WP, ParentId);
+            if (Author.Equals("Red Folder"))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Remote));
+                var xmlnsEmpty = new XmlSerializerNamespaces();
+                xmlnsEmpty.Add("", "");
+                serializer.Serialize(writer, Remote.RedFolder(), xmlnsEmpty);
+            }
+            writer.WriteElementString("comment_id", Rss.NS_WP, Id);
+            writer.WriteElementString("comment_author", Rss.NS_WP, Author);
+            writer.WriteElementString("comment_author_email", Rss.NS_WP, AuthorEmail);
+            writer.WriteElementString("comment_author_url", Rss.NS_WP, AuthorUrl);
+            writer.WriteElementString("comment_author_IP", Rss.NS_WP, AuthorIP);
+            writer.WriteElementString("comment_date_gmt", Rss.NS_WP, Published.ToString(Rss.DISQUS_DATE_FORMAT));
+            writer.WriteStartElement("comment_content", Rss.NS_WP);
+            writer.WriteCData(Content);
+            writer.WriteEndElement();
+            writer.WriteElementString("comment_approved", Rss.NS_WP, Approved.ToString());
+            writer.WriteElementString("comment_parent", Rss.NS_WP, ParentId);
         }
 
-        public void ReadXml (XmlReader reader)
+        public void ReadXml(XmlReader reader)
         {
             throw new NotImplementedException();
         }
 
         public XmlSchema GetSchema()
         {
-            return(null);
+            return (null);
         }
         #endregion    
     }

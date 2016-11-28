@@ -163,7 +163,7 @@ namespace BloggerTransformer.Helpers
                     Title = meta.Title,
                     AbsoluteUrl = DESTINATION_BLOG_PATH + meta.Url,
                     Content = "",
-                    ThreadIdentified = "",
+                    ThreadIdentified = meta.Id,
                     Published = meta.Published,
                     Status = "open",
                     Comments = BuildComments(graph.Children, "")
