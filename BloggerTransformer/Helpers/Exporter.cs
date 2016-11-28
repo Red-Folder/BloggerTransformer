@@ -7,11 +7,15 @@ using RedFolder.Website.Data;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
+using BloggerTransformer.Models.Disqus;
+using System.Xml.Serialization;
 
 namespace BloggerTransformer.Helpers
 {
     public class Exporter
     {
+        private const string DESTINATION_BLOG_PATH = "https://www.red-folder.com/blog/";
+
         private const string CONTENTBASEFOLDER = "c:\\tmp\\blog\\";
         private const string MEDIABASEFOLDER = "c:\\tmp\\blog\\";
         private const string MEDIABASEPATH = "/media/blog/";
@@ -142,8 +146,67 @@ namespace BloggerTransformer.Helpers
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
             SaveMeta(contentFolder, graph.Entry.Url, meta);
 
+            var comments = BuildRss(meta, graph);
+            SaveDisqus(contentFolder, graph.Entry.Url, comments);
+
             Console.WriteLine(graph.Entry.Url);
+        }
+
+        private static Rss BuildRss(Blog meta, EntryGraph graph)
+        {
+            if (graph.Children != null && graph.Children.Count > 0)
+            {
+                var comments = new Rss();
+                comments.Channel = new Channel();
+                comments.Channel.Items = new List<Item>();
+                comments.Channel.Items.Add(new Item {
+                    Title = meta.Title,
+                    AbsoluteUrl = DESTINATION_BLOG_PATH + meta.Url,
+                    Content = "",
+                    ThreadIdentified = "",
+                    Published = meta.Published,
+                    Status = "open",
+                    Comments = BuildComments(graph.Children, "")
+                });
+
+
+                return comments;
+            }
+            else 
+            {
+                return null;
+            }
+        }
+
+        private static List<Comment> BuildComments(List<EntryGraph> bloggerEntries, string parentId)
+        {
+            var comments = new List<Comment>();
+
+            foreach (var entry in bloggerEntries)
+            {
+                var id = Guid.NewGuid().ToString();
+                comments.Add(new Comment
+                {
+                    Id = id,
+                    Author = entry.Entry.Author.Name,
+                    AuthorEmail = "",
+                    AuthorUrl = "",
+                    AuthorIP = "",
+                    Published = entry.Entry.Published,
+                    Content = entry.Entry.Content,
+                    Approved = true,
+                    ParentId = parentId
+                });
+
+                if (entry.Children != null && entry.Children.Count > 0)
+                {
+                    comments.AddRange(BuildComments(entry.Children, parentId));
+                }
+            }
+
+            return comments;
         }  
+
         private static void SaveMarkdown(string baseFolder, string exportFolder, string markdown)
         {
             File.WriteAllText(baseFolder + "\\" + exportFolder + ".md", markdown);
@@ -152,6 +215,15 @@ namespace BloggerTransformer.Helpers
         private static void SaveMeta(string baseFolder, string exportFolder, Blog meta)
         {
             File.WriteAllText(baseFolder + "\\" + exportFolder + ".json", JsonConvert.SerializeObject(meta));
+        }
+
+        private static void SaveDisqus(string baseFolder, string exportFolder, Rss comments)
+        {
+            using (var fileStream = File.Open(baseFolder + "\\" + exportFolder + ".xml", FileMode.Create))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Rss));
+                serializer.Serialize(fileStream, comments);
+            }
         }
 
         private static string CreateContentFolder(string folderName)
