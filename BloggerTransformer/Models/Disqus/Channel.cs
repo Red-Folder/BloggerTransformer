@@ -15,12 +15,16 @@ namespace BloggerTransformer.Models.Disqus
         #region IXmlSerializable
         public void WriteXml (XmlWriter writer)
         {
-            //XmlSerializer serializer = new XmlSerializer(typeof(Channel));
-            //var xmlnsEmpty = new XmlSerializerNamespaces();
-            //xmlnsEmpty.Add("", "");
-            //serializer.Serialize(writer, Channel, xmlnsEmpty);
-
-            writer.WriteString("Hello World");
+            if (Items != null)
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Item));
+                var xmlnsEmpty = new XmlSerializerNamespaces();
+                xmlnsEmpty.Add("", "");
+                foreach (var item in Items)
+                {
+                    serializer.Serialize(writer, item, xmlnsEmpty);
+                }
+            }
         }
 
         public void ReadXml (XmlReader reader)
