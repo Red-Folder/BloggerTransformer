@@ -133,10 +133,17 @@ namespace BloggerTransformer.Helpers
                 md = md.Replace(DESCRIPTION_BREAK_TAG, "");
             }
 
-            // Set up the Keywords - add RFC Weekly if necessary
+            // Set up the Keywords
             meta.KeyWords = graph.Entry.Tags;
+
+            // RFC Weekly specific actions
             if (graph.Entry.Title.ToLower().Contains("rfc") && graph.Entry.Title.ToLower().Contains("weekly"))
             {
+                // Add the image & description
+                meta.Image = "/media/blog/rfc-weekly/RFCWeeklyTwitterCard.png";
+                meta.Description = "RFC Weekly - a summary of things that I find interesting.  It is an indulgence; its the weekly update that I would like to receive.  Unfortunately no-one else is producing it so I figured I best get on with it.  Hopefully someone else will also find useful.";
+
+                // Add as a key word
                 if (!meta.KeyWords.Contains("RFCWeekly"))
                 {
                     meta.KeyWords.Add("RFCWeekly");
