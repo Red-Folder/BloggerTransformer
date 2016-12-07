@@ -23,8 +23,8 @@ namespace BloggerTransformer.Models.Disqus
         {
             return new Remote
             {
-                Id = "TODO",
-                AvatarUrl = "TODO"
+                Id = "Red-Folder",
+                AvatarUrl = ""
             };
         }
 
