@@ -26,6 +26,10 @@ namespace BloggerTransformer.Helpers
 
         public static void Export(EntryGraph graph, Rss comments)
         {
+            var debug = false;
+
+            Console.WriteLine(graph.Entry.Url);
+
             Blog meta = new Blog();
             meta.Id = Guid.NewGuid().ToString();
             meta.Url = graph.Entry.Url;
@@ -54,9 +58,11 @@ namespace BloggerTransformer.Helpers
             var md = graph.Entry.Content;
 
             // Add Carriage Returns
+            if (debug) Console.WriteLine("Add Carriage Returns");
             md = md.Replace("<br />", Environment.NewLine);
 
             // Map <hx>
+            if (debug) Console.WriteLine("Map <hx>");
             md = Regex.Replace(md, "<h1>(.*?)</h1>", x =>
             {
                 return "# " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
@@ -71,25 +77,33 @@ namespace BloggerTransformer.Helpers
             });
 
             // Replace non-breaking spaces
+            if (debug) Console.WriteLine("Replace non-breaking spaces");
             md = md.Replace("&nbsp;", " ");
 
             // Remove any meta Tags
+            if (debug) Console.WriteLine("Remove any meta Tags");
             md = Regex.Replace(md, "<meta (.*?)/>" + Environment.NewLine, "");
 
             // Map blogger image
+            if (debug) Console.WriteLine("Map blogger image");
             md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x =>
             {
                 return "![Image](" + ProcessImage(mediaFolder, mediaPath, x.Groups[2].Value) + ")" + Environment.NewLine;
             });
 
             // Remove summary breaks
+            if (debug) Console.WriteLine("Remove summary breaks");
             md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, DESCRIPTION_BREAK_TAG);
+            md = md.Replace("<a name='more'></a>" + Environment.NewLine, DESCRIPTION_BREAK_TAG);
+            md = md.Replace("<a name='more'></a>", DESCRIPTION_BREAK_TAG);
 
             // Remove RFC Weekly header
+            if (debug) Console.WriteLine("Remove RFC Weekly header");
             Regex rfcWeeklyHeaderRegex = new Regex("<a href=\"(.*?)Hopefully someone else will also find useful.", RegexOptions.Singleline);
             md = rfcWeeklyHeaderRegex.Replace(md, "");
 
             // Map Anchors
+            if (debug) Console.WriteLine("Map Anchors");
             md = Regex.Replace(md, "<a (.*?)>(.*?)</a>", x =>
             {
                 var sb = new StringBuilder();
@@ -103,25 +117,31 @@ namespace BloggerTransformer.Helpers
             });
 
             // Map Lists
+            if (debug) Console.WriteLine("Map Lists");
             md = md.Replace("<ul>", Environment.NewLine);
             md = md.Replace("<li>", "* ");
             md = md.Replace("</li>", Environment.NewLine);
             md = md.Replace("</ul>", Environment.NewLine);
 
             // Gists
+            if (debug) Console.WriteLine("Gists");
             md = Regex.Replace(md, "<script src=\"(.*?)\">(.*?)</script>", x => "%[" + x.Groups[1].Value + "]");
 
             // Remove Spread the love
+            if (debug) Console.WriteLine("Remove Spread the love");
             md = Regex.Replace(md, "<div id=\"SpreadTheLove\">(.*?)</div>", "");
 
             // Remove Divs
+            if (debug) Console.WriteLine("Remove Divs");
             md = Regex.Replace(md, "<div(.*?)>", "");
             md = md.Replace("</div>", "");
 
             // Replace html encoding
+            if (debug) Console.WriteLine("Replace html encoding");
             md = md.Replace("&gt;", ">");
 
             // Remove empty lines at the start & end
+            if (debug) Console.WriteLine("Remove empty lines at the start & end");
             while (md.StartsWith(Environment.NewLine))
             {
                 md = md.Substring(Environment.NewLine.Length);
@@ -132,6 +152,7 @@ namespace BloggerTransformer.Helpers
             }
 
             // Load the Description (then remove the tag)
+            if (debug) Console.WriteLine("Load the Description (then remove the tag)");
             if (md.Contains(DESCRIPTION_BREAK_TAG))
             {
                 meta.Description = md.Substring(0, md.IndexOf(DESCRIPTION_BREAK_TAG));
@@ -139,9 +160,11 @@ namespace BloggerTransformer.Helpers
             }
 
             // Set up the Keywords
+            if (debug) Console.WriteLine("Setup the keywords");
             meta.KeyWords = graph.Entry.Tags;
 
             // RFC Weekly specific actions
+            if (debug) Console.WriteLine("RFC Weekly specific actions");
             if (graph.Entry.Title.ToLower().Contains("rfc") && graph.Entry.Title.ToLower().Contains("weekly"))
             {
                 // Add the image & description
@@ -155,12 +178,11 @@ namespace BloggerTransformer.Helpers
                 }
             }
 
+            if (debug) Console.WriteLine("Save to file");
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
             SaveMeta(contentFolder, graph.Entry.Url, meta);
 
             BuildRss(comments, meta, graph);
-
-            Console.WriteLine(graph.Entry.Url);
         }
 
         public static Rss NewRss()

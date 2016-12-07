@@ -31,11 +31,13 @@ namespace ConsoleApplication
             // Loop through each entry
             // Build up the Disqus comments as we go
             var comments = Exporter.NewRss();
-            foreach (var entry in feed.Entries.Where(x => x.Kind == KindType.Post))
+            foreach (var entry in feed.Entries.Where(x => x.Kind == KindType.Post && !x.IsDraft))
             {
-                if (entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894" ||
-                    entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2941986872580699950")
+                //if (entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894" ||
+                //    entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2941986872580699950")
+                //if (entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-7607876749709462790")
                 {
+
                     var graph = feed.Graph(entry);
                     Exporter.Export(graph, comments);
                 }

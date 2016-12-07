@@ -34,6 +34,17 @@ namespace BloggerTransformer.Models.Blogger
 
         [XmlElement("link")]
         public List<Link> Links;
+
+        [XmlElement(ElementName = "control", Namespace = "http://purl.org/atom/app#")]
+        public Control Control;
+
+        public bool IsDraft
+        {
+            get
+            {
+                return (Control != null && Control.Draft.ToLower().Equals("yes"));
+            }
+        }
         
         public string RelatedLink
         {
@@ -55,7 +66,10 @@ namespace BloggerTransformer.Models.Blogger
         {
             get
             {
+                //Console.WriteLine(Title);
+                //Console.WriteLine(IsDraft);
                 var fullUrl = BloggerUrl;
+                //Console.WriteLine(fullUrl);
                 return fullUrl.Substring(fullUrl.LastIndexOf('/')).Replace("/", "").Replace(".html", ""); 
             }
         }
