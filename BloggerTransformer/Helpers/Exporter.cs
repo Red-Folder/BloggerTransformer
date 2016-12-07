@@ -16,7 +16,7 @@ namespace BloggerTransformer.Helpers
     {
         private const string DESTINATION_BLOG_PATH = "https://www.red-folder.com/blog/";
 
-        private const string CONTENTBASEFOLDER = "c:\\tmp\\blog\\";
+        public const string CONTENTBASEFOLDER = "c:\\tmp\\blog\\";
         private const string MEDIABASEFOLDER = "c:\\tmp\\blog\\";
         private const string MEDIABASEPATH = "/media/blog/";
 
@@ -24,7 +24,7 @@ namespace BloggerTransformer.Helpers
 
         private const bool DOWNLOAD_ENABLED = false;
 
-        public static void Export(EntryGraph graph)
+        public static void Export(EntryGraph graph, Rss comments)
         {
             Blog meta = new Blog();
             meta.Id = Guid.NewGuid().ToString();
@@ -57,36 +57,41 @@ namespace BloggerTransformer.Helpers
             md = md.Replace("<br />", Environment.NewLine);
 
             // Map <hx>
-            md = Regex.Replace(md, "<h1>(.*?)</h1>", x => {
+            md = Regex.Replace(md, "<h1>(.*?)</h1>", x =>
+            {
                 return "# " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
             });
-            md = Regex.Replace(md, "<h2>(.*?)</h2>", x => {
+            md = Regex.Replace(md, "<h2>(.*?)</h2>", x =>
+            {
                 return "## " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
             });
-            md = Regex.Replace(md, "<h3>(.*?)</h3>", x => {
+            md = Regex.Replace(md, "<h3>(.*?)</h3>", x =>
+            {
                 return "### " + x.Groups[1] + Environment.NewLine; // + new String('-', x.Groups[1].Length) + Environment.NewLine;
             });
 
             // Replace non-breaking spaces
-            md = md.Replace("&nbsp;"," ");
+            md = md.Replace("&nbsp;", " ");
 
             // Remove any meta Tags
-            md = Regex.Replace(md, "<meta (.*?)/>" + Environment.NewLine, "");            
+            md = Regex.Replace(md, "<meta (.*?)/>" + Environment.NewLine, "");
 
             // Map blogger image
-            md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x => {
-               return "![Image](" + ProcessImage(mediaFolder, mediaPath, x.Groups[2].Value) + ")" + Environment.NewLine; 
+            md = Regex.Replace(md, "<div class=\"separator\"(.*?)<a href=\"(.*?)\"(.*?)<img (.*?)src=\"(.*?)\"(.*?)</div>", x =>
+            {
+                return "![Image](" + ProcessImage(mediaFolder, mediaPath, x.Groups[2].Value) + ")" + Environment.NewLine;
             });
 
             // Remove summary breaks
             md = md.Replace("<a name='more'></a>" + Environment.NewLine + Environment.NewLine, DESCRIPTION_BREAK_TAG);
-            
+
             // Remove RFC Weekly header
             Regex rfcWeeklyHeaderRegex = new Regex("<a href=\"(.*?)Hopefully someone else will also find useful.", RegexOptions.Singleline);
             md = rfcWeeklyHeaderRegex.Replace(md, "");
 
             // Map Anchors
-            md = Regex.Replace(md, "<a (.*?)>(.*?)</a>", x => {
+            md = Regex.Replace(md, "<a (.*?)>(.*?)</a>", x =>
+            {
                 var sb = new StringBuilder();
                 sb.Append("[");
                 sb.Append(x.Groups[2]);
@@ -104,7 +109,7 @@ namespace BloggerTransformer.Helpers
             md = md.Replace("</ul>", Environment.NewLine);
 
             // Gists
-            md = Regex.Replace(md, "<script src=\"(.*?)\">(.*?)</script>", x=> "%[" + x.Groups[1].Value + "]");
+            md = Regex.Replace(md, "<script src=\"(.*?)\">(.*?)</script>", x => "%[" + x.Groups[1].Value + "]");
 
             // Remove Spread the love
             md = Regex.Replace(md, "<div id=\"SpreadTheLove\">(.*?)</div>", "");
@@ -149,24 +154,29 @@ namespace BloggerTransformer.Helpers
                     meta.KeyWords.Add("RFCWeekly");
                 }
             }
-                
+
             SaveMarkdown(contentFolder, graph.Entry.Url, md);
             SaveMeta(contentFolder, graph.Entry.Url, meta);
 
-            var comments = BuildRss(meta, graph);
-            SaveDisqus(contentFolder, graph.Entry.Url, comments);
+            BuildRss(comments, meta, graph);
 
             Console.WriteLine(graph.Entry.Url);
         }
 
-        private static Rss BuildRss(Blog meta, EntryGraph graph)
+        public static Rss NewRss()
+        {
+            var comments = new Rss();
+            comments.Channel = new Channel();
+            comments.Channel.Items = new List<Item>();
+            return comments;
+        }
+
+        private static void BuildRss(Rss comments, Blog meta, EntryGraph graph)
         {
             if (graph.Children != null && graph.Children.Count > 0)
             {
-                var comments = new Rss();
-                comments.Channel = new Channel();
-                comments.Channel.Items = new List<Item>();
-                comments.Channel.Items.Add(new Item {
+                comments.Channel.Items.Add(new Item
+                {
                     Title = meta.Title,
                     AbsoluteUrl = DESTINATION_BLOG_PATH + meta.Url,
                     Content = "",
@@ -175,13 +185,6 @@ namespace BloggerTransformer.Helpers
                     Status = "open",
                     Comments = BuildComments(graph.Children, "")
                 });
-
-
-                return comments;
-            }
-            else 
-            {
-                return null;
             }
         }
 
@@ -212,7 +215,7 @@ namespace BloggerTransformer.Helpers
             }
 
             return comments;
-        }  
+        }
 
         private static void SaveMarkdown(string baseFolder, string exportFolder, string markdown)
         {
@@ -224,9 +227,9 @@ namespace BloggerTransformer.Helpers
             File.WriteAllText(baseFolder + "\\" + exportFolder + ".json", JsonConvert.SerializeObject(meta));
         }
 
-        private static void SaveDisqus(string baseFolder, string exportFolder, Rss comments)
+        public static void SaveDisqus(Rss comments)
         {
-            using (var fileStream = File.Open(baseFolder + "\\" + exportFolder + ".xml", FileMode.Create))
+            using (var fileStream = File.Open(CONTENTBASEFOLDER + "\\disqus.xml", FileMode.Create))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(Rss));
                 serializer.Serialize(fileStream, comments);
@@ -242,7 +245,7 @@ namespace BloggerTransformer.Helpers
         {
             return CreateFolder(MEDIABASEFOLDER + folderName);
         }
-        
+
         private static string CreateFolder(string folderName)
         {
             if (Directory.Exists(folderName))
@@ -264,7 +267,7 @@ namespace BloggerTransformer.Helpers
 
                 if (DOWNLOAD_ENABLED)
                 {
-                    Downloader.Download(imageUrl, exportFolder + "\\" +  filename).Wait();
+                    Downloader.Download(imageUrl, exportFolder + "\\" + filename).Wait();
                 }
 
                 return newImageUrl;

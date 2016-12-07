@@ -28,13 +28,20 @@ namespace ConsoleApplication
             Console.WriteLine(feed.Id);
             Console.WriteLine(feed.Entries.Count);
 
-            // Output the feed for sample
-            //var targetId = "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894";
-            var targetId = "tag:blogger.com,1999:blog-2744013729766746743.post-2941986872580699950";
-            var testPost = feed.Entries.Where(x => x.Id == targetId).First();
-            var testGraph = feed.Graph(testPost);
-            //ReportPost(testPost, testGraph);
-            Exporter.Export(testGraph);
+            // Loop through each entry
+            // Build up the Disqus comments as we go
+            var comments = Exporter.NewRss();
+            foreach (var entry in feed.Entries.Where(x => x.Kind == KindType.Post))
+            {
+                if (entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2815398180088438894" ||
+                    entry.Id == "tag:blogger.com,1999:blog-2744013729766746743.post-2941986872580699950")
+                {
+                    var graph = feed.Graph(entry);
+                    Exporter.Export(graph, comments);
+                }
+
+            }
+            Exporter.SaveDisqus(comments);
 
             Console.WriteLine("Finished");
         }
