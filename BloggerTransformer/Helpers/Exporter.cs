@@ -33,7 +33,7 @@ namespace BloggerTransformer.Helpers
 
         private const string DESCRIPTION_BREAK_TAG = "[DESCRIPTION BREAK]";
 
-        private const bool DOWNLOAD_ENABLED = false;
+        private const bool DOWNLOAD_ENABLED = true;
 
         public static void Export(EntryGraph graph, Rss comments)
         {
