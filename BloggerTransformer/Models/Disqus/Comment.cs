@@ -49,13 +49,13 @@ namespace BloggerTransformer.Models.Disqus
         #region IXmlSerializable
         public void WriteXml(XmlWriter writer)
         {
-            if (Author.Equals("Red Folder"))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(Remote));
-                var xmlnsEmpty = new XmlSerializerNamespaces();
-                xmlnsEmpty.Add("", "");
-                serializer.Serialize(writer, Remote.RedFolder(), xmlnsEmpty);
-            }
+            //if (Author.Equals("Red Folder"))
+            //{
+            //    XmlSerializer serializer = new XmlSerializer(typeof(Remote));
+            //    var xmlnsEmpty = new XmlSerializerNamespaces();
+            //    xmlnsEmpty.Add("", "");
+            //    serializer.Serialize(writer, Remote.RedFolder(), xmlnsEmpty);
+            //}
             writer.WriteElementString("comment_id", Rss.NS_WP, Id);
             writer.WriteElementString("comment_author", Rss.NS_WP, Author);
             writer.WriteElementString("comment_author_email", Rss.NS_WP, AuthorEmail);
@@ -65,7 +65,7 @@ namespace BloggerTransformer.Models.Disqus
             writer.WriteStartElement("comment_content", Rss.NS_WP);
             writer.WriteCData(Content);
             writer.WriteEndElement();
-            writer.WriteElementString("comment_approved", Rss.NS_WP, Approved.ToString());
+            writer.WriteElementString("comment_approved", Rss.NS_WP, Approved ? "1": "0");
             writer.WriteElementString("comment_parent", Rss.NS_WP, ParentId);
         }
 

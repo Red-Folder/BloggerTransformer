@@ -12,8 +12,19 @@ using System.Xml.Serialization;
 
 namespace BloggerTransformer.Helpers
 {
+
     public class Exporter
     {
+        private static int commentId = 1;
+
+        private static int NextCommentId
+        {
+            get
+            {
+                return commentId++;
+            }
+        }
+
         private const string DESTINATION_BLOG_PATH = "https://www.red-folder.com/blog/";
 
         public const string CONTENTBASEFOLDER = "c:\\tmp\\blog\\";
@@ -216,10 +227,10 @@ namespace BloggerTransformer.Helpers
 
             foreach (var entry in bloggerEntries)
             {
-                var id = Guid.NewGuid().ToString();
+                var id = NextCommentId;
                 comments.Add(new Comment
                 {
-                    Id = id,
+                    Id = id.ToString(),
                     Author = entry.Entry.Author.Name,
                     AuthorEmail = "",
                     AuthorUrl = "",
@@ -232,7 +243,7 @@ namespace BloggerTransformer.Helpers
 
                 if (entry.Children != null && entry.Children.Count > 0)
                 {
-                    comments.AddRange(BuildComments(entry.Children, parentId));
+                    comments.AddRange(BuildComments(entry.Children, id.ToString()));
                 }
             }
 

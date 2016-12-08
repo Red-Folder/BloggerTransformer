@@ -42,7 +42,8 @@ namespace BloggerTransformer.Models.Disqus
             writer.WriteElementString("title", Title);
             writer.WriteElementString("link", AbsoluteUrl);
             writer.WriteElementString("encoded", Rss.NS_CONTENT, Content);
-            writer.WriteElementString("thread_identified", Rss.NS_DSQ, ThreadIdentified);
+            //writer.WriteElementString("thread_identified", Rss.NS_DSQ, ThreadIdentified);
+            writer.WriteElementString("thread_identified", Rss.NS_DSQ, "");
             writer.WriteElementString("post_date_gmt", Rss.NS_WP, Published.ToString(Rss.DISQUS_DATE_FORMAT));
             writer.WriteElementString("comment_status", Rss.NS_WP, Status);
             if (Comments != null)
