@@ -296,7 +296,9 @@ namespace BloggerTransformer.Helpers
             if (imageUrl.Contains("blogspot.com"))
             {
                 var filename = imageUrl.Substring(imageUrl.LastIndexOf("/") + 1);
-                var newImageUrl = relativePath + filename;
+                filename = filename.Replace("+","-");
+                filename = filename.Replace("%","-");
+                var newImageUrl = relativePath + "/" + filename;
 
                 if (DOWNLOAD_ENABLED)
                 {
